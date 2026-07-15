@@ -1,0 +1,56 @@
+services:
+  db:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: oa_care
+      MARIADB_USER: oa_user
+      MARIADB_PASSWORD: oa_password
+      MARIADB_ROOT_PASSWORD: root_password
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  api:
+    image: php:8.2-cli
+    working_dir: /app
+    command: sh -c "docker-php-ext-install pdo_mysql && php -S 0.0.0.0:8081 -t public"
+    env_file: .env
+    volumes:
+      - ./backend:/app
+      - ./data:/data:ro
+    ports:
+      - "8081:8081"
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    image: nginx:1.27-alpine
+    volumes:
+      - ./frontend:/usr/share/nginx/html:ro
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+  scraper:
+    image: node:22-alpine
+    profiles: ["ingestion"]
+    working_dir: /app
+    env_file: ./scraper/.env.example
+    volumes:
+      - ./scraper:/app
+    command: sh -c "npm install && npm run ingest"
+    depends_on:
+      - api
+
+volumes:
+  db_data:

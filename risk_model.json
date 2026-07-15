@@ -1,0 +1,23 @@
+{
+  "version": "0.1.0-educational",
+  "purpose": "Transparent demonstration only; not clinically validated",
+  "weights": {
+    "pain_score": 4.0,
+    "stiffness_normalized": 15.0,
+    "mobility_limitation": 2.0,
+    "sleep_impact": 1.2,
+    "low_activity": 8.0,
+    "medication_non_adherence": 0.8
+  },
+  "thresholds": {
+    "low_max": 39,
+    "moderate_max": 69,
+    "high_min": 70
+  },
+  "red_flags": [
+    "swollen_hot_joint",
+    "fever",
+    "unable_to_bear_weight",
+    "recent_trauma"
+  ]
+}
